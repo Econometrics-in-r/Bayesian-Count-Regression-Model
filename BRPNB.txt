@@ -1,0 +1,36 @@
+#Model: Bayesian Random Parameters Negative Binomial Model
+
+model {
+
+for( i in 1 : N) {
+
+LOGLEN[i] <- log(Length[i])
+LOGAADT[i] <- log(AADT[i])
+TOTACC[i] <- Crash[i]
+
+#Composite Linear Predictor Equation
+log(mu[i]) <- beta0 + alpha[1] * LOGLEN[i]  + alpha[2] * NumLane[i] + alpha[3] * SHWidth[i] + beta[i,1] * LOGAADT[i] + beta[i,2] * PerHV[i] + beta[i,3] * MedWidth[i]  + beta[i,4] * curv[i]
+
+}
+
+for( i in 1 : N) { 
+				       TOTACC[i] ~ dnegbin(z[i],phi)
+						z[i] <- phi/(phi + mu[i])
+   					}
+
+#Prior
+beta0 ~ dnorm(0,0.001)
+alpha[1] ~ dnorm(0,0.001)
+alpha[2] ~ dnorm(0,0.001)
+alpha[3] ~ dnorm(0,0.001)
+
+for(i in 1:15) { for(j in 1:4) {beta[i,j] ~ dnorm(Mbeta[j],precb[j]) } } 
+
+for (j in 1:4) { Mbeta[j] ~ dnorm(0,0.001) 
+                   precb[j] <- 1/SDB[j]
+                   SDB[j] ~ dexp(1)
+                   }
+
+phi ~ dgamma(1,1)
+
+}
